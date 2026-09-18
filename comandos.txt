@@ -1,0 +1,6 @@
+git add .
+git commit -m "Descreva a alteração"
+git push
+
+git status
+git diff
