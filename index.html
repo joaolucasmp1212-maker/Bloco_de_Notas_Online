@@ -1,0 +1,97 @@
+<body>
+    <!-- Titulo -->
+    <h1>Bloco de Notas Online</h1>
+    <h3>Crie Blocos de Notas Publicos</h3>
+
+    <div id="Abrir/Criar"> 
+        <!-- Abrir/Criar -->
+        <input type="text" id="nomeBloco" placeholder="Nome do Bloco">
+        <button onclick="abrir()">Abrir</button>
+        <button onclick="criar()">Criar</button>
+    </div>
+    
+    <div id="Digitar" style="display: none;">
+        <!-- Bloco de Notas -->
+        <h2 id="nomeBloco"></h2>
+        <textarea id="conteudoBloco" placeholder="Digite seu texto aqui..." rows="10" cols="50"></textarea>
+        <br><br>
+        <button onclick="salvar()">Salvar</button>
+        <button onclick="voltar()">Voltar</button>
+    </div>
+
+    <div id="Exibir" style="display: none;">
+        <!-- Exibir Bloco de Notas -->
+        <h2 id="nome"></h2>
+        <p id="texto"></p>
+        <br>
+    <button onclick="voltar()">Voltar</button>
+    </div>
+    
+    <script>
+        const URL_SERVIDOR = "http://127.0.0.1:5000";
+
+
+
+        function criar(){
+            let nomeInput = document.getElementById("nomeBloco").value;
+            if (!nomeInput) return alert("Digite o nome do bloco!");
+            fetch(`${URL_SERVIDOR}/buscar/${nomeInput}`)
+                .then(resposta => resposta.json())
+                .then(dados => {
+                    if (dados.texto == null || dados.texto == "") {
+                        // iniciarBloco(nomeInput);
+                        document.getElementById("nomeBloco").innerText = nomeInput;
+                        document.getElementById("Abrir/Criar").style.display = "none";
+                        document.getElementById("Digitar").style.display = "block";
+                    } else {
+                        alert("Este bloco já existe! Por favor, escolha outro nome.");
+                    }
+                });
+            
+
+            
+        }
+
+        function abrir(){
+            let nomeInput = document.getElementById("nomeBloco").value;
+            if (!nomeInput) return alert("Digite o nome do bloco!");
+
+            // Faz uma requisição para o Python buscando o bloco pelo nome
+            fetch(`${URL_SERVIDOR}/buscar/${nomeInput}`)
+                .then(resposta => resposta.json())
+                .then(dados => {
+                    document.getElementById("nome").innerText = nomeInput;
+                    // Coloca o texto que veio do Python na tela (se não existir, mostra vazio)
+                    document.getElementById("texto").innerText = dados.texto || "Este bloco está vazio.";
+                
+                    document.getElementById("Abrir/Criar").style.display = "none";
+                    document.getElementById("Exibir").style.display = "block";
+                });
+        }
+
+        function voltar(){
+            document.getElementById("conteudoBloco").value = ""; // Limpa a caixa de texto
+            document.getElementById("Digitar").style.display = "none";
+            document.getElementById("Exibir").style.display = "none";
+            document.getElementById("Abrir/Criar").style.display = "block";
+        }
+        
+        function salvar(){
+            let nomeInput = document.getElementById("nomeBloco").value;
+            let textoConteudo = document.getElementById("conteudoBloco").value;
+
+            // Envia o texto para o Python salvar no banco de dados
+            fetch(`${URL_SERVIDOR}/salvar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome: nomeInput, texto: textoConteudo })
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                alert("Bloco salvo com sucesso!");
+                voltar();
+            });
+        }
+
+    </script>
+</body>
